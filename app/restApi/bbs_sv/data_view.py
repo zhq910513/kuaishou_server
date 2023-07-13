@@ -1,22 +1,23 @@
 #!/usr/bin/python
 
+import logging
+
+from flask import request
 # Flask模块
 from pymongo import MongoClient
-from flask import request
-
-
 # 返回信息模块
 from pymongo.errors import DuplicateKeyError
-from . import bbs_sv_bp
+
 from app.utils.resp_tool import ApiTool
 from config.response_code import Reponse
-import logging
+from . import bbs_sv_bp
 
 client = MongoClient('mongodb://readWrite:readWrite123456@127.0.0.1:27017/ks')
 keys_coll = client['ks']['keys']
 phone_coll = client['ks']['phones']
 author_list_coll = client['ks']['author_list']
 author_profile_coll = client['ks']['author_profile']
+
 
 def hash_key(keyword):
     try:
@@ -29,7 +30,7 @@ def hash_key(keyword):
 
 
 # 关键词信息
-@bbs_sv_bp.route("/keys", methods = ["GET", "PUT"])
+@bbs_sv_bp.route("/keys", methods=["GET", "PUT"])
 def keys_info():
     """ 获取关键词信息 """
     if request.method == "GET":
@@ -37,10 +38,10 @@ def keys_info():
             keys = []
             request_data = request.args
             phone_num = int(request_data.get("phone_num"))
-            for keyword in keys_coll.find({'status': None}):
-                hash_num = hash_key(keyword["keyword"])
+            for _info in keys_coll.find({'status': None}):
+                hash_num = hash_key(_info["keyword"])
                 if hash_num == phone_num:
-                    keys.append(keyword)
+                    keys.append(_info)
                 if len(keys) == 20:
                     break
             return ApiTool.return_response(Reponse.SUCCESS, data=keys)
@@ -52,7 +53,7 @@ def keys_info():
     if request.method == "PUT":
         try:
             request_data = request.json
-            keys_coll.update_one({'keyword': request_data.get('keyword')}, {'$set': request_data}, upsert=True)
+            keys_coll.update_one({'hash_key': request_data.get('hash_key')}, {'$set': request_data}, upsert=True)
             return ApiTool.return_response(Reponse.SUCCESS)
         except Exception as e:
             logging.exception(e)
@@ -60,7 +61,7 @@ def keys_info():
 
 
 # 手机信息
-@bbs_sv_bp.route("/phones", methods = ["GET", "PUT"])
+@bbs_sv_bp.route("/phones", methods=["GET", "PUT"])
 def phones_info():
     """ 获取手机账号信息 """
     if request.method == "GET":
@@ -89,7 +90,7 @@ def phones_info():
 
 
 # 用户列表信息
-@bbs_sv_bp.route("/author_list", methods = ["POST"])
+@bbs_sv_bp.route("/author_list", methods=["POST"])
 def author_list_info():
     """ 新增用户列表信息 """
     if request.method == "POST":
@@ -103,14 +104,12 @@ def author_list_info():
                     except:
                         pass
             return ApiTool.return_response(Reponse.SUCCESS)
-        except DuplicateKeyError:
-            return ApiTool.return_response(Reponse.SUCCESS, data='DuplicateKey')
         except Exception as error:
             return ApiTool.return_response(error)
 
 
 # 用户个人信息
-@bbs_sv_bp.route("/author_profile", methods = ["POST"])
+@bbs_sv_bp.route("/author_profile", methods=["POST"])
 def author_profile_info():
     if request.method == "POST":
         try:
@@ -121,5 +120,3 @@ def author_profile_info():
             return ApiTool.return_response(Reponse.SUCCESS, data='DuplicateKey')
         except Exception as error:
             return ApiTool.return_response(error)
-
-
