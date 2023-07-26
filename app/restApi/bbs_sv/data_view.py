@@ -99,7 +99,7 @@ def author_list_info():
             if data_list:
                 for usr in data_list:
                     try:
-                        author_list_coll.update_one({'user_id': usr['user_id']}, {'$set': usr}, upsert=True)
+                        author_list_coll.update_one({'hash_key': usr['hash_key']}, {'$set': usr}, upsert=True)
                     except:
                         pass
             return ApiTool.return_response(Reponse.SUCCESS)
