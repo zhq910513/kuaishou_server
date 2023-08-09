@@ -36,12 +36,10 @@ def keys_info():
         try:
             keys = []
             request_data = request.args
-            phone_uid = request_data.get("uid")
-            phone_info = phone_coll.find_one({"uid": phone_uid})
-            if not phone_info:
+            phone_num = request_data.get("phoneNum")
+            if not phone_num:
                 return ApiTool.return_response(Reponse.NODATA)
-            phone_number = phone_info.get("number")
-            for _kw in keys_coll.find({'status': None, "number": phone_number}).limit(20):
+            for _kw in keys_coll.find({'status': None, "number": phone_num}).limit(20):
                 keys.append({"hash_key": _kw["hash_key"], "keyword": _kw["keyword"]})
             return ApiTool.return_response(Reponse.SUCCESS, data=keys)
         except Exception as e:
